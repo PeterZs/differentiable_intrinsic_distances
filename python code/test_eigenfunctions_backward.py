@@ -27,19 +27,20 @@ print(opt)
 # =============Loading Intrinsic Properties of GT Completion======================================== #
 x = sio.loadmat(opt.shape_path)
 adj_VF = torch.from_numpy(x['adj_VF']).cuda().float()
-num_vertices = adj_VF.shape[0]
+num_vertices_full = adj_VF.shape[0]
 num_triangles = adj_VF.shape[1]
 num_evec = opt.num_evec
 LBO_gt = torch.from_numpy(x['L']).cuda().double()
-LBO_gt = LBO_gt.unsqueeze(0).expand(opt.batchSize, num_vertices, num_vertices)
+LBO_gt = LBO_gt.unsqueeze(0).expand(opt.batchSize, num_vertices_full, num_vertices_full)
 triv = torch.from_numpy(x['F'].astype(int)).cuda().unsqueeze(0).expand(opt.batchSize, num_triangles, 3)
 triv = triv - 1  # zero based index
-vertices = torch.from_numpy(x['V']).cuda().unsqueeze(0).expand(opt.batchSize, num_vertices, 3)
+vertices = torch.from_numpy(x['V']).cuda().unsqueeze(0).expand(opt.batchSize, num_vertices_full, 3)
 phi = torch.from_numpy(x['Phi']).cuda().double() #OH
-phi = phi[:,:num_evec].unsqueeze(0).expand(opt.batchSize, num_vertices, num_evec)
+phi = phi[:,:num_evec].unsqueeze(0).expand(opt.batchSize, num_vertices_full, num_evec)
 evals = torch.from_numpy(x['Lambda']).cuda().double()
 evals = evals[:num_evec].unsqueeze(0).expand(opt.batchSize, num_evec, 1).transpose(2, 1)
-area_V = torch.from_numpy(x['A']).cuda().double().unsqueeze(0).expand(opt.batchSize, num_vertices, 1)
+area_V = torch.from_numpy(x['A']).cuda().double().unsqueeze(0).expand(opt.batchSize, num_vertices_full, 1)
+
 
 # =============DEFINE stuff for logs ======================================== #
 # Launch visdom for visualization
@@ -60,7 +61,7 @@ optimization_loss = []
 
 # ===================CREATE optimizer================================= #
 lrate = 0.01 # learning rate
-pointsReconstructed = torch.randn((2, num_vertices, 3), requires_grad=True, device="cuda", dtype = torch.float)
+pointsReconstructed = torch.randn((2, num_vertices_full, 3), requires_grad=True, device="cuda", dtype = torch.float)
 optimizer = optim.Adam([{'params' : pointsReconstructed}], lr=lrate)
 
 # OH: calculate ground truth diffusion distance
@@ -84,9 +85,9 @@ for epoch in range(opt.nepoch):
     L_reconstructed, area_matrix, area_matrix_inv, W = LBO(pointsReconstructed.double(), triv.long())
     L_sym = torch.bmm(area_matrix ** 0.5, torch.bmm(L_reconstructed, area_matrix_inv ** 0.5))
     K = torch.tensor(num_evec)
-    N = torch.tensor(num_vertices)
+    N = torch.tensor(num_vertices_full)
     phi_reconstructed_sym, lambda_reconstructed = Eigendecomposition(L_sym[0].cpu().double(), K, N)
-    phi_reconstructed_sym = phi_reconstructed_sym.unsqueeze(0).expand(opt.batchSize, num_vertices, num_evec).cuda()
+    phi_reconstructed_sym = phi_reconstructed_sym.unsqueeze(0).expand(opt.batchSize, num_vertices_full, num_evec).cuda()
 
     phi_reconstructed = torch.bmm(area_matrix_inv ** 0.5, phi_reconstructed_sym) #convert from eigenfunctions of L_sym to L
     square_norm_phi_reconstructed = torch.bmm(phi_reconstructed.transpose(2,1), torch.bmm(area_matrix, phi_reconstructed))

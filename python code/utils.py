@@ -67,7 +67,7 @@ def LBO(V, F):
     # C = torch.stack([cot23, cot31, cot12], 2) / torch.unsqueeze(A, 2) / 8 # dim: [B x F x 3] cotangent of angle at vertex 1,2,3 correspondingly
 
     B = V.shape[0]
-    num_vertices = V.shape[1]
+    num_vertices_full = V.shape[1]
     num_faces = F.shape[1]
 
     edges_23 = F[:, :, [1, 2]].cuda()
@@ -78,14 +78,14 @@ def LBO(V, F):
     batch_edges_31 = edges_31.view(-1, 2)
     batch_edges_12 = edges_12.view(-1, 2)
 
-    W = torch.zeros(B, num_vertices, num_vertices, dtype=torch.double).cuda()
+    W = torch.zeros(B, num_vertices_full, num_vertices_full, dtype=torch.double).cuda()
 
     repeated_batch_idx_f = torch.arange(0, B).repeat(num_faces).reshape(num_faces, B).transpose(1, 0).contiguous().view(
         -1)  # [000...111...BBB...], number of repetitions is: num_faces
-    repeated_batch_idx_v = torch.arange(0, B).repeat(num_vertices).reshape(num_vertices, B).transpose(1,
+    repeated_batch_idx_v = torch.arange(0, B).repeat(num_vertices_full).reshape(num_vertices_full, B).transpose(1,
                                                                                                       0).contiguous().view(
-        -1)  # [000...111...BBB...], number of repetitions is: num_vertices
-    repeated_vertex_idx_b = torch.arange(0, num_vertices).repeat(B)
+        -1)  # [000...111...BBB...], number of repetitions is: num_vertices_full
+    repeated_vertex_idx_b = torch.arange(0, num_vertices_full).repeat(B)
 
     W[repeated_batch_idx_f, batch_edges_23[:, 0], batch_edges_23[:, 1]] = batch_cot23
     W[repeated_batch_idx_f, batch_edges_31[:, 0], batch_edges_31[:, 1]] = batch_cot31
@@ -98,7 +98,7 @@ def LBO(V, F):
     # W is the contangent matrix VALIDATED
     # Warning: residual error of torch.max(torch.sum(W,dim = 1).view(-1)) is ~ 1e-18
 
-    VF_adj = VF_adjacency_matrix(V[0], F[0]).unsqueeze(0).expand(B, num_vertices, num_faces).cuda()  # VALIDATED
+    VF_adj = VF_adjacency_matrix(V[0], F[0]).unsqueeze(0).expand(B, num_vertices_full, num_faces).cuda()  # VALIDATED
     V_area = (torch.bmm(VF_adj, A.unsqueeze(2)) / 3).squeeze().cuda()  # VALIDATED
 
     area_matrix = torch.diag_embed(V_area)
@@ -136,7 +136,7 @@ class Eigendecomposition(torch.autograd.Function):
         # constructing the indices for the calculation of sparse du/dL
         #Todo: refactor this call and the same call in optimize.py
         #This is the path for the ground truth mesh
-        x = sio.loadmat("./../data/eigendecomposition/downsampled_tr_reg_004.mat")
+        x = sio.loadmat("./../data/eigendecomposition/downsampled_tr_reg_000.mat")
         adj_VV = x['adj_VV']
         L_mask_flatten = csc_matrix.reshape(adj_VV, (1, Nnp ** 2))
         _, col_ind = L_mask_flatten.nonzero()
