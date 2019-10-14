@@ -16,24 +16,26 @@ from utils import *
 parser = argparse.ArgumentParser()
 parser.add_argument('--num_evec', type=int, default=10, help='visdom environment')
 parser.add_argument('--nepoch', type=int, default=100000, help='number of epochs to train for')
-parser.add_argument('--shape_path', type=str, default="D:/shape_completion/data/eigendecomposition/downsampled_tr_reg_004.mat", help='save path')
+parser.add_argument('--shape_path', type=str, default="./../data/eigendecomposition/downsampled_tr_reg_004.mat", help='save path')
 parser.add_argument('--save_path', type=str, default='optimization', help='save path')
 parser.add_argument('--env', type=str, default="diffusion", help='visdom environment')
+parser.add_argument('--batchSize', type=int, default=2, help='save path')
 
 opt = parser.parse_args()
 print(opt)
 
 # =============Loading Intrinsic Properties of GT Completion======================================== #
-x = sio.loadmat(shape_path)
+x = sio.loadmat(opt.shape_path)
 adj_VF = torch.from_numpy(x['adj_VF']).cuda().float()
 num_vertices = adj_VF.shape[0]
 num_triangles = adj_VF.shape[1]
+num_evec = opt.num_evec
 LBO_gt = torch.from_numpy(x['L']).cuda().double()
 LBO_gt = LBO_gt.unsqueeze(0).expand(opt.batchSize, num_vertices, num_vertices)
 triv = torch.from_numpy(x['F'].astype(int)).cuda().unsqueeze(0).expand(opt.batchSize, num_triangles, 3)
 triv = triv - 1  # zero based index
 vertices = torch.from_numpy(x['V']).cuda().unsqueeze(0).expand(opt.batchSize, num_vertices, 3)
-phi = torch.from_numpy(x['Phi']).cuda().double()
+phi = torch.from_numpy(x['Phi']).cuda().double() #OH
 phi = phi[:,:num_evec].unsqueeze(0).expand(opt.batchSize, num_vertices, num_evec)
 evals = torch.from_numpy(x['Lambda']).cuda().double()
 evals = evals[:num_evec].unsqueeze(0).expand(opt.batchSize, num_evec, 1).transpose(2, 1)
@@ -45,7 +47,7 @@ vis = visdom.Visdom(port=8888, env=opt.env)
 save_path = opt.save_path
 dir_name = os.path.join('./log/', save_path)
 if not os.path.exists(dir_name):
-    os.mkdir(dir_name)
+    os.makedirs(dir_name, True)
 logname = os.path.join(dir_name, 'log.txt')
 
 opt.manualSeed = 1  # random.randint(1, 10000)  # fix seed

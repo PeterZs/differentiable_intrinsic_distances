@@ -136,7 +136,7 @@ class Eigendecomposition(torch.autograd.Function):
         # constructing the indices for the calculation of sparse du/dL
         #Todo: refactor this call and the same call in optimize.py
         #This is the path for the ground truth mesh
-        x = sio.loadmat("D:/shape_completion/data/eigendecomposition/downsampled_tr_reg_004.mat")
+        x = sio.loadmat("./../data/eigendecomposition/downsampled_tr_reg_004.mat")
         adj_VV = x['adj_VV']
         L_mask_flatten = csc_matrix.reshape(adj_VV, (1, Nnp ** 2))
         _, col_ind = L_mask_flatten.nonzero()
