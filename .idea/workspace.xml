@@ -2,10 +2,10 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="dfe4d95e-ffcf-4d89-88ea-49e7e45a87ac" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/python code/optimize_shape_completion.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/python code/chamfer_python.py" beforeDir="false" afterPath="$PROJECT_DIR$/python code/chamfer_python.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/python code/test_eigenfunctions_backward.py" beforeDir="false" afterPath="$PROJECT_DIR$/python code/test_eigenfunctions_backward.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/python code/utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/python code/utils.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/python code/utils_parallel.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/python code/optimization_result.mat" beforeDir="false" afterPath="$PROJECT_DIR$/python code/optimization_result.mat" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/python code/optimize_shape_completion.py" beforeDir="false" afterPath="$PROJECT_DIR$/python code/optimize_shape_completion.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -45,7 +45,7 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="Python.optimize_shape_completion">
+  <component name="RunManager" selected="Python.parallel_differentiable_diffusion_distance">
     <configuration name="optimize_shape_completion" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <module name="differentiable_intrinsic_distances" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -59,6 +59,27 @@
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/python code/optimize_shape_completion.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="parallel_differentiable_diffusion_distance" type="PythonConfigurationType" factoryName="Python" temporary="true">
+      <module name="differentiable_intrinsic_distances" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/python code" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/python code/parallel_differentiable_diffusion_distance.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -90,6 +111,7 @@
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Python.parallel_differentiable_diffusion_distance" />
         <item itemvalue="Python.optimize_shape_completion" />
         <item itemvalue="Python.test_eigenfunctions_backward" />
       </list>
