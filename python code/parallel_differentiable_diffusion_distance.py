@@ -86,7 +86,7 @@ for epoch in range(opt.nepoch):
     L_sym = torch.bmm(area_matrix ** 0.5, torch.bmm(L_reconstructed, area_matrix_inv ** 0.5))
     K = torch.tensor(num_evec)
     N = torch.tensor(num_vertices_full)
-    phi_reconstructed_sym, lambda_reconstructed = EigendecompositionParallel(L_sym[0].cpu().double(), K, N)
+    phi_reconstructed_sym, lambda_reconstructed = EigendecompositionParallel(L_sym[0].double(), K, N)
     phi_reconstructed_sym = phi_reconstructed_sym.unsqueeze(0).expand(opt.batchSize, num_vertices_full, num_evec).cuda()
 
     phi_reconstructed = torch.bmm(area_matrix_inv ** 0.5, phi_reconstructed_sym) #convert from eigenfunctions of L_sym to L

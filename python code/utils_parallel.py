@@ -69,44 +69,82 @@ class EigendecompositionParallel(torch.autograd.Function):
     # Note that both forward and backward are @staticmethods
     @staticmethod
     def forward(ctx, input_matrix, K, N):
-        input_matrix_np = input_matrix.data.numpy()
+        input_matrix_np = input_matrix.data.cpu().numpy()
         Knp = K.data.numpy()
-        eigvals, eigvecs = eigh(input_matrix_np, eigvals=(0, Knp - 1), lower=False)
+        eigvals, eigvecs = eigh(input_matrix_np, lower=False)
+#         eigvals, eigvecs = eigh(input_matrix_np, eigvals=(0, Knp - 1), lower=False)
 
-        eigvals = torch.from_numpy(eigvals)
-        eigvecs = torch.from_numpy(eigvecs)
+        eigvals = torch.from_numpy(eigvals).cuda()
+        eigvecs = torch.from_numpy(eigvecs).cuda()
+        
         ctx.save_for_backward(input_matrix, eigvals, eigvecs, K, N)
-        return (eigvecs, eigvals)
+        return (eigvecs[:,:K], eigvals[:K])
 
-    # This function has only a single output, so it gets only one gradient
     @staticmethod
     def backward(ctx, grad_output, grad_output2):
+        # grad_output stands for the grad of eigvecs
+        #grad_output2 stands for the grad of eigvecs
+        
+#         t = time.time()
         input_matrix, eigvals, eigvecs, K, N = ctx.saved_tensors
-        Knp = K.data.numpy().item()
-        Nnp = N.data.numpy().item()
+        
+        Kknp = eigvals.shape[0]
         grad_K = None
         grad_N = None
-
-        # constructing the indices for the calculation of sparse du/dL
-        #TODO: refactor this call and the same call in optimizzation script
-        x = sio.loadmat("./../data/eigendecomposition/downsampled_tr_reg_004.mat")
-        adj_VV = x['adj_VV']
-        L_mask_flatten = csc_matrix.reshape(adj_VV, (1, Nnp ** 2))
-        _, col_ind = L_mask_flatten.nonzero()
-        Lnnz = col_ind.shape[0]
-        row_ind = np.arange(Nnp)
-        row_ind = np.repeat(row_ind, Lnnz)
-        col_ind = np.tile(col_ind, Nnp)
-        row_ind = row_ind.astype((np.int64))
-        col_ind = col_ind.astype((np.int64))
-        col_ind_mod_N = col_ind % Nnp
-        col_ind_div_N = col_ind // Nnp
-
-        # TODO: parallelize
-        grad_input_matrix = calculate_grad_input_matrix_parallel(input_matrix, grad_output, row_ind, col_ind, col_ind_mod_N, col_ind_div_N, eigvals, eigvecs, Nnp, Knp)
-        grad_input_matrix = torch.from_numpy(np.transpose(np.reshape(grad_input_matrix.todense(), (Nnp, Nnp))))
-
+        
+        #NOTE: if we suffer memory issues we can split the K eigenvectors and iterate using an accumulator
+        Ink = torch.eye(Kknp,K).double().cuda()
+        eig_inv = 1/(eigvals[None,:K]-eigvals[:,None] + Ink) * (1-Ink)
+        uk = eigvecs[:, :K]
+        grad_input_matrix = torch.mm(torch.mm(eigvecs,eig_inv[:,:]*torch.mm(eigvecs.t(),grad_output[:, :K])),uk.t()).t()        
+#         print('time -',time.time() - t)
+        
         return grad_input_matrix, grad_K, grad_N
+    
+    
+# class EigendecompositionParallel(torch.autograd.Function):
+
+#     # Note that both forward and backward are @staticmethods
+#     @staticmethod
+#     def forward(ctx, input_matrix, K, N):
+#         input_matrix_np = input_matrix.data.numpy()
+#         Knp = K.data.numpy()
+#         eigvals, eigvecs = eigh(input_matrix_np, eigvals=(0, Knp - 1), lower=False)
+
+#         eigvals = torch.from_numpy(eigvals)
+#         eigvecs = torch.from_numpy(eigvecs)
+#         ctx.save_for_backward(input_matrix, eigvals, eigvecs, K, N)
+#         return (eigvecs, eigvals)
+
+#     # This function has only a single output, so it gets only one gradient
+#     @staticmethod
+#     def backward(ctx, grad_output, grad_output2):
+#         input_matrix, eigvals, eigvecs, K, N = ctx.saved_tensors
+#         Knp = K.data.numpy().item()
+#         Nnp = N.data.numpy().item()
+#         grad_K = None
+#         grad_N = None
+
+#         # constructing the indices for the calculation of sparse du/dL
+#         #TODO: refactor this call and the same call in optimizzation script
+#         x = sio.loadmat("./../data/eigendecomposition/downsampled_tr_reg_004.mat")
+#         adj_VV = x['adj_VV']
+#         L_mask_flatten = csc_matrix.reshape(adj_VV, (1, Nnp ** 2))
+#         _, col_ind = L_mask_flatten.nonzero()
+#         Lnnz = col_ind.shape[0]
+#         row_ind = np.arange(Nnp)
+#         row_ind = np.repeat(row_ind, Lnnz)
+#         col_ind = np.tile(col_ind, Nnp)
+#         row_ind = row_ind.astype((np.int64))
+#         col_ind = col_ind.astype((np.int64))
+#         col_ind_mod_N = col_ind % Nnp
+#         col_ind_div_N = col_ind // Nnp
+
+#         # TODO: parallelize
+#         grad_input_matrix = calculate_grad_input_matrix_parallel(input_matrix, grad_output, row_ind, col_ind, col_ind_mod_N, col_ind_div_N, eigvals, eigvecs, Nnp, Knp)
+#         grad_input_matrix = torch.from_numpy(np.transpose(np.reshape(grad_input_matrix.todense(), (Nnp, Nnp))))
+
+#         return grad_input_matrix, grad_K, grad_N
 
 
 # Aliasing
