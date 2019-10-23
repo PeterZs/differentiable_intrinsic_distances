@@ -2,10 +2,11 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="dfe4d95e-ffcf-4d89-88ea-49e7e45a87ac" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/python code/utils_parallel.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/eigendecomposition/tr_reg_004.mat" beforeDir="false" afterPath="$PROJECT_DIR$/data/eigendecomposition/tr_reg_004.mat" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/matlab_code/calculate_eigen_decomposition_full_shape.m" beforeDir="false" afterPath="$PROJECT_DIR$/matlab_code/calculate_eigen_decomposition_full_shape.m" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/python code/optimization_result.mat" beforeDir="false" afterPath="$PROJECT_DIR$/python code/optimization_result.mat" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/python code/optimize_shape_completion.py" beforeDir="false" afterPath="$PROJECT_DIR$/python code/optimize_shape_completion.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/python code/parallel_differentiable_diffusion_distance.py" beforeDir="false" afterPath="$PROJECT_DIR$/python code/parallel_differentiable_diffusion_distance.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
