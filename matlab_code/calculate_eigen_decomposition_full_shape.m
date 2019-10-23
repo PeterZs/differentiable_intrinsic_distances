@@ -1,11 +1,12 @@
-%clear all
+clear all
 addpath(genpath('./utils/'))
 dir_faust = 'D:/Data/MPI-FAUST/training/registrations/';
-dir_save = 'D:/shape_completion/data/eigendecomposition/';
+dir_save = 'D:/differentiable_intrinsic_distances/data/eigendecomposition/';
 
-shape_idx = '004'
+shape_idx = '000'
 k = 100;
-faust_file_name = [dir_faust , 'tr_reg_' , shape_idx , '_downsampled.ply'];
+faust_file_name = [dir_faust , 'tr_reg_' , shape_idx , '.ply'];
+%faust_file_name = [dir_faust , 'tr_reg_' , shape_idx , '_downsampled.ply'];
 [mesh,~] = plyread(faust_file_name); 
 full_mesh = [];
 full_mesh.TRIV = cell2mat(mesh.face.vertex_indices) + 1; full_mesh.VERT = [mesh.vertex.x,mesh.vertex.y,mesh.vertex.z];
@@ -34,4 +35,5 @@ adj_VF = full(adjacency_VF(full_mesh.VERT,full_mesh.TRIV));
 adj_VV = sparse(1*(adj_VF*adj_VF'>0));
 F = full_mesh.TRIV;
 V = [full_mesh.X,full_mesh.Y,full_mesh.Z];
-save([dir_save,'downsampled_tr_reg_' , shape_idx],'Phi','L','Lambda','adj_VF','V', 'F','A','adj_VV')
+save([dir_save,'tr_reg_' , shape_idx],'Phi','L','Lambda','adj_VF','V', 'F','A','adj_VV')
+%save([dir_save,'downsampled_tr_reg_' , shape_idx],'Phi','L','Lambda','adj_VF','V', 'F','A','adj_VV')

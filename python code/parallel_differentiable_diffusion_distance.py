@@ -14,7 +14,7 @@ from utils_parallel import *
 
 # =============PARAMETERS======================================== #
 parser = argparse.ArgumentParser()
-parser.add_argument('--num_evec', type=int, default=10, help='visdom environment')
+parser.add_argument('--num_evec', type=int, default=100, help='visdom environment')
 parser.add_argument('--nepoch', type=int, default=100000, help='number of epochs to train for')
 parser.add_argument('--shape_path', type=str, default="./../data/eigendecomposition/downsampled_tr_reg_004.mat", help='save path')
 parser.add_argument('--save_path', type=str, default='optimization', help='save path')
