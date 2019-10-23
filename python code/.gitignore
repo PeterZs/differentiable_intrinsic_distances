@@ -1,1 +1,2 @@
-optimization_result.mat
+#ignore following files
+./optimization_result.mat
