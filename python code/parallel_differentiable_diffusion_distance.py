@@ -16,7 +16,8 @@ from utils_parallel import *
 parser = argparse.ArgumentParser()
 parser.add_argument('--num_evec', type=int, default=100, help='visdom environment')
 parser.add_argument('--nepoch', type=int, default=100000, help='number of epochs to train for')
-parser.add_argument('--shape_path', type=str, default="./../data/eigendecomposition/downsampled_tr_reg_004.mat", help='save path')
+# parser.add_argument('--shape_path', type=str, default="./../data/eigendecomposition/downsampled_tr_reg_004.mat", help='save path')
+parser.add_argument('--shape_path', type=str, default="./../data/eigendecomposition/tr_reg_004.mat", help='save path')
 parser.add_argument('--save_path', type=str, default='optimization', help='save path')
 parser.add_argument('--env', type=str, default="diffusion", help='visdom environment')
 parser.add_argument('--batchSize', type=int, default=2, help='save path')
@@ -60,12 +61,13 @@ optimization_loss = []
 
 
 # ===================CREATE optimizer================================= #
-lrate = 0.01 # learning rate
+lrate = 0.005 # learning rate
 pointsReconstructed = torch.randn((2, num_vertices_full, 3), requires_grad=True, device="cuda", dtype = torch.float)
 optimizer = optim.Adam([{'params' : pointsReconstructed}], lr=lrate)
 
+
 # OH: calculate ground truth diffusion distance
-gt = vertices.cuda().float()
+gt = vertices.double().cuda()
 D_diff_gt = calc_euclidean_dist_matrix(phi)
 
 # =============start of the optimization loop ======================================== #
@@ -82,18 +84,24 @@ for epoch in range(opt.nepoch):
 
 
     #Calulcate diffusion distance for the optimized mesh
-    L_reconstructed, area_matrix, area_matrix_inv, W = LBO(pointsReconstructed.double(), triv.long())
-    L_sym = torch.bmm(area_matrix ** 0.5, torch.bmm(L_reconstructed, area_matrix_inv ** 0.5))
+#     L_reconstructed, area_matrix, area_matrix_inv, W = LBO(pointsReconstructed, triv)
+    W,V_area = LBO_slim(pointsReconstructed.double(), triv)
+    V_sqrt_area_inv = torch.rsqrt(V_area)
+    L_sym =  V_sqrt_area_inv.unsqueeze(-1) * W * V_sqrt_area_inv.unsqueeze(-2)
+
+
     K = torch.tensor(num_evec)
     N = torch.tensor(num_vertices_full)
-    phi_reconstructed_sym, lambda_reconstructed = EigendecompositionParallel(L_sym[0].double(), K, N)
-    phi_reconstructed_sym = phi_reconstructed_sym.unsqueeze(0).expand(opt.batchSize, num_vertices_full, num_evec).cuda()
+    phi_reconstructed_sym, lambda_reconstructed = EigendecompositionParallel(L_sym[0], K, N)
+    phi_reconstructed_sym = phi_reconstructed_sym.unsqueeze(0).expand(opt.batchSize, num_vertices_full, num_evec)
 
-    phi_reconstructed = torch.bmm(area_matrix_inv ** 0.5, phi_reconstructed_sym) #convert from eigenfunctions of L_sym to L
-    square_norm_phi_reconstructed = torch.bmm(phi_reconstructed.transpose(2,1), torch.bmm(area_matrix, phi_reconstructed))
-    square_norm_phi_reconstructed = torch.diag(square_norm_phi_reconstructed[0,:,:])
-    square_norm_phi_reconstructed = square_norm_phi_reconstructed.unsqueeze(0).unsqueeze(1)
-    phi_reconstructed = phi_reconstructed/(square_norm_phi_reconstructed ** 0.5)
+    phi_reconstructed = V_sqrt_area_inv.unsqueeze(-1)*phi_reconstructed_sym #convert from eigenfunctions of L_sym to L
+
+    #Is it really necessary to normalize eigenfunctions? They should be already normalized
+    #(S^-0.5 * W)' * S * S^-0.5 * W -> (S^-0.5 * W)' * S^0.5 * W  -> W' * S^-0.5 * S^0.5 * W -> W'*W = I -> True
+#     square_norm_phi_reconstructed = torch.sum( (phi_reconstructed*V_area.unsqueeze(-1)*phi_reconstructed),-2,keepdims=True)
+#     phi_reconstructed = phi_reconstructed*torch.rsqrt(square_norm_phi_reconstructed)
+    
     D_diff_rec = calc_euclidean_dist_matrix(phi_reconstructed)
     loss_diff = torch.mean((D_diff_rec - D_diff_gt) ** 2)
 

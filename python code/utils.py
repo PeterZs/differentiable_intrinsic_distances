@@ -27,7 +27,7 @@ def VF_adjacency_matrix(V, F):
     return VF_adj
 
 
-def LBO(V, F):
+def LBO_slim(V, F):
     """
     Input:
       V: B x N x 3
@@ -101,10 +101,17 @@ def LBO(V, F):
     VF_adj = VF_adjacency_matrix(V[0], F[0]).unsqueeze(0).expand(B, num_vertices_full, num_faces).cuda()  # VALIDATED
     V_area = (torch.bmm(VF_adj, A.unsqueeze(2)) / 3).squeeze().cuda()  # VALIDATED
 
+    return W, V_area
+    
+
+def LBO(V, F):
+    W, V_area = LBO_slim(V,F)
     area_matrix = torch.diag_embed(V_area)
     area_matrix_inv = torch.diag_embed(1 / V_area)
     L = torch.bmm(area_matrix_inv, W)  # VALIDATED
     return L, area_matrix, area_matrix_inv, W
+
+
 
 
 class Eigendecomposition(torch.autograd.Function):
@@ -136,8 +143,11 @@ class Eigendecomposition(torch.autograd.Function):
         # constructing the indices for the calculation of sparse du/dL
         #Todo: refactor this call and the same call in optimize.py
         #This is the path for the ground truth mesh
-        x = sio.loadmat("./../data/eigendecomposition/downsampled_tr_reg_000.mat")
+        x = sio.loadmat("./../data/eigendecomposition/downsampled_tr_reg_004.mat")
         adj_VV = x['adj_VV']
+        print(adj_VV.shape)
+        print(Nnp)
+        
         L_mask_flatten = csc_matrix.reshape(adj_VV, (1, Nnp ** 2))
         _, col_ind = L_mask_flatten.nonzero()
         Lnnz = col_ind.shape[0]

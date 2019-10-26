@@ -63,19 +63,21 @@ def calculate_grad_input_matrix_parallel(input_matrix, grad_output, row_ind, col
     return grad_input_matrix
 
 
-
+USE_PYTORCH_SYMEIG = False
 class EigendecompositionParallel(torch.autograd.Function):
 
     # Note that both forward and backward are @staticmethods
     @staticmethod
     def forward(ctx, input_matrix, K, N):
-        input_matrix_np = input_matrix.data.cpu().numpy()
-        Knp = K.data.numpy()
-        eigvals, eigvecs = eigh(input_matrix_np, lower=False)
-#         eigvals, eigvecs = eigh(input_matrix_np, eigvals=(0, Knp - 1), lower=False)
-
-        eigvals = torch.from_numpy(eigvals).cuda()
-        eigvecs = torch.from_numpy(eigvecs).cuda()
+        if USE_PYTORCH_SYMEIG:
+            eigvals, eigvecs = torch.symeig(input_matrix, eigenvectors=True)
+        else:
+            input_matrix_np = input_matrix.data.cpu().numpy()
+            Knp = K.data.numpy()
+            eigvals, eigvecs = eigh(input_matrix_np, lower=False)        
+#             eigvals, eigvecs = eigh(input_matrix_np, eigvals=(0, Knp - 1), lower=False)
+            eigvals = torch.from_numpy(eigvals).cuda()
+            eigvecs = torch.from_numpy(eigvecs).cuda()
         
         ctx.save_for_backward(input_matrix, eigvals, eigvecs, K, N)
         return (eigvecs[:,:K], eigvals[:K])
