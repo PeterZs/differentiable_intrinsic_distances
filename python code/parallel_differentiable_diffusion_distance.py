@@ -20,7 +20,7 @@ parser.add_argument('--nepoch', type=int, default=100000, help='number of epochs
 parser.add_argument('--shape_path', type=str, default="./../data/eigendecomposition/tr_reg_004.mat", help='save path')
 parser.add_argument('--save_path', type=str, default='optimization', help='save path')
 parser.add_argument('--env', type=str, default="diffusion", help='visdom environment')
-parser.add_argument('--batchSize', type=int, default=2, help='save path')
+parser.add_argument('--batchSize', type=int, default=1, help='save path')
 
 opt = parser.parse_args()
 print(opt)
@@ -33,7 +33,7 @@ num_triangles = adj_VF.shape[1]
 num_evec = opt.num_evec
 LBO_gt = torch.from_numpy(x['L']).cuda().double()
 LBO_gt = LBO_gt.unsqueeze(0).expand(opt.batchSize, num_vertices_full, num_vertices_full)
-triv = torch.from_numpy(x['F'].astype(int)).cuda().unsqueeze(0).expand(opt.batchSize, num_triangles, 3)
+triv = torch.from_numpy(x['F'].astype(np.int64)).cuda().unsqueeze(0).expand(opt.batchSize, num_triangles, 3)
 triv = triv - 1  # zero based index
 vertices = torch.from_numpy(x['V']).cuda().unsqueeze(0).expand(opt.batchSize, num_vertices_full, 3)
 phi = torch.from_numpy(x['Phi']).cuda().double() #OH

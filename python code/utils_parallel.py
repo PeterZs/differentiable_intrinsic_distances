@@ -63,7 +63,7 @@ def calculate_grad_input_matrix_parallel(input_matrix, grad_output, row_ind, col
     return grad_input_matrix
 
 
-USE_PYTORCH_SYMEIG = False
+USE_PYTORCH_SYMEIG = True
 class EigendecompositionParallel(torch.autograd.Function):
 
     # Note that both forward and backward are @staticmethods
